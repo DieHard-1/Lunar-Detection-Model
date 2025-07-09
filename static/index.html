@@ -1,0 +1,578 @@
+<html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Team Telescope</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      box-sizing: border-box;
+      transition: all 0.4s ease;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Outfit', sans-serif;
+      background: url('Background.png') no-repeat center top, #01111A;
+      background-size: cover;
+      background-attachment: scroll;
+      color: white;
+      scroll-behavior: smooth;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    .fade-in {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 1s ease, transform 1s ease;
+    }
+
+    .fade-in.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .hero {
+      height: 80vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding-left: 10%;
+    }
+
+    .hero h5 {
+      color: #f5d547;
+      font-weight: 600;
+      letter-spacing: 2px;
+      margin: 0;
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin: 10px 0 0;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #ccc;
+    }
+
+    .upload-section,
+    .result-section,
+    .use-cases {
+      text-align: center;
+      padding: 30px 20px;
+    }
+
+    .upload-section h2,
+    .result-section h2,
+    .use-cases h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .upload-section p {
+      color: #aaa;
+      margin-bottom: 20px;
+    }
+
+    .upload-box {
+      border: 2px dashed #555;
+      border-radius: 15px;
+      padding: 50px;
+      display: inline-block;
+      cursor: pointer;
+      max-width: 90%;
+    }
+
+    .upload-box:hover {
+      border-color: #fff;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .upload-box img {
+      width: 60px;
+      margin-bottom: 10px;
+    }
+
+    .detect-btn {
+      display: block;
+      margin: 20px auto 0;
+      padding: 12px 30px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 30px;
+      background-color: #0057ff;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .detect-btn:hover {
+      background-color: #003fcc;
+      transform: scale(1.05);
+    }
+
+    .result-section {
+      display: none;
+      animation: fadeIn 1s ease-out forwards;
+    }
+
+    .result-images {
+      position: relative;
+      margin-top: 20px;
+      margin-left: auto;
+      margin-right: auto;
+      max-width: 800px;
+    }
+
+    .result-images img {
+      width: 100%;
+      border-radius: 16px;
+      display: block;
+      position: relative;
+      z-index: 1;
+      opacity: 0;
+      transform: scale(0.95);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .result-images img.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* Overlay container for crater IDs */
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* clicks pass through */
+      z-index: 2;
+    }
+
+    /* Crater ID labels: plain numbers, very small, no background */
+    .crater-id {
+      position: absolute;
+      color: #f5d547dd;
+      font-weight: 700;
+      font-size: 0.65rem; /* very small */
+      transform: translate(-50%, -50%);
+      user-select: none;
+      pointer-events: none;
+      font-family: 'Outfit', sans-serif;
+      text-shadow:
+        -0.5px -0.5px 1px #0008,
+         0.5px -0.5px 1px #0008,
+        -0.5px  0.5px 1px #0008,
+         0.5px  0.5px 1px #0008;
+      /* No background or border */
+    }
+
+    .loading {
+      font-size: 1.2rem;
+      color: #f5d547;
+      margin-top: 20px;
+    }
+
+    .use-cases {
+      background-color: rgba(0, 0, 0, 0.6);
+      border-top: 2px solid #333;
+      padding: 40px 20px;
+      margin-top: 40px;
+    }
+
+    .use-cases ul {
+      list-style: none;
+      padding: 0;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .use-cases li {
+      background: rgba(255, 255, 255, 0.05);
+      margin: 15px 0;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: left;
+    }
+
+    .use-cases li h3 {
+      margin: 0 0 10px;
+      color: #f5d547;
+    }
+
+    #filePreview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
+
+    #filePreview img {
+      max-width: 100px;
+      max-height: 100px;
+      border-radius: 8px;
+    }
+
+    table {
+      margin-top: 20px;
+      color: #eee;
+      width: 90%;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    table,
+    th,
+    td {
+      border: 1px solid #666;
+      padding: 8px 12px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    th {
+      background-color: #112;
+      font-weight: 600;
+    }
+
+    /* Show more / less button styling */
+    #toggleTableBtn {
+      cursor: pointer;
+      color: #f5d547;
+      font-weight: 700;
+      background: none;
+      border: none;
+      font-size: 1rem;
+      margin-top: 10px;
+      text-decoration: underline;
+      display: inline-block;
+      user-select: none;
+      transition: color 0.3s ease;
+    }
+
+    #toggleTableBtn:hover {
+      color: #fff;
+    }
+
+    /* Responsive */
+    @media screen and (max-width: 768px) {
+      .hero {
+        padding: 20px;
+        align-items: center;
+        text-align: center;
+        height: auto;
+      }
+
+      .result-images {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .upload-box {
+        width: 100%;
+      }
+
+      table {
+        font-size: 0.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hero fade-in">
+    <h5>SUMMER OF INNOVATION</h5>
+    <h1>Lunar Surface Detection</h1>
+    <p>Detect Craters and Boulders in 1 click 👆</p>
+  </div>
+
+  <section class="upload-section fade-in">
+    <h2>Upload Lunar Surface Images</h2>
+    <p>Upload image of the lunar surface for analysis.</p>
+    <label for="fileUpload" class="upload-box" tabindex="0" aria-label="Upload lunar surface images">
+      <input type="file" id="fileUpload" multiple hidden aria-hidden="true" />
+      <img src="upload_icon.png" alt="Upload Icon" />
+      <p>Drag and drop images here, or click to browse</p>
+    </label>
+    <div id="filePreview" aria-live="polite"></div>
+    <button class="detect-btn" id="detectBtn" disabled aria-disabled="true">Detect</button>
+    <div class="loading" id="loadingMsg" style="display: none;">Detecting...</div>
+  </section>
+
+  <section class="result-section fade-in" id="resultSection" aria-live="polite">
+    <h2>Detection Result</h2>
+    <div class="result-images" id="resultImagesContainer"></div>
+  </section>
+
+  
+
+  <script>
+    const fileUpload = document.getElementById('fileUpload');
+    const detectBtn = document.getElementById('detectBtn');
+    const resultSection = document.getElementById('resultSection');
+    const loadingMsg = document.getElementById('loadingMsg');
+    const resultImagesContainer = document.getElementById('resultImagesContainer');
+    const filePreview = document.getElementById('filePreview');
+
+    let selectedFiles = [];
+
+    fileUpload.addEventListener('change', () => {
+      filePreview.innerHTML = '';
+      resultImagesContainer.innerHTML = '';
+      selectedFiles = Array.from(fileUpload.files);
+
+      if (selectedFiles.length > 0) {
+        detectBtn.disabled = false;
+        detectBtn.setAttribute('aria-disabled', 'false');
+        selectedFiles.forEach((file) => {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const previewItem = document.createElement('div');
+            previewItem.innerHTML = `
+              <img src="${e.target.result}" alt="Preview of ${file.name}" />
+              <div style="font-size: 0.8rem; color: #ccc; text-align: center;">${file.name}</div>
+            `;
+            filePreview.appendChild(previewItem);
+          };
+          reader.readAsDataURL(file);
+        });
+      } else {
+        detectBtn.disabled = true;
+        detectBtn.setAttribute('aria-disabled', 'true');
+      }
+    });
+
+    detectBtn.addEventListener('click', async () => {
+      if (selectedFiles.length === 0) return;
+
+      detectBtn.style.display = 'none';
+      loadingMsg.style.display = 'block';
+      resultImagesContainer.innerHTML = '';
+      resultSection.style.display = 'block';
+
+      for (const file of selectedFiles) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+          const response = await fetch('http://127.0.0.1:8000/predict', {
+            method: 'POST',
+            body: formData,
+          });
+
+          if (!response.ok) throw new Error('Prediction failed.');
+          const data = await response.json();
+
+          // Create container for image + overlay + table + toggle
+          const container = document.createElement('div');
+          container.style.position = 'relative';
+          container.style.marginBottom = '50px';
+
+          // Detected image
+          const img = document.createElement('img');
+          img.src = data.image; // base64 string data URL
+          img.alt = 'Detection Result';
+          img.classList.add('visible');
+          container.appendChild(img);
+
+          // Overlay container
+          const overlay = document.createElement('div');
+          overlay.className = 'overlay';
+          container.appendChild(overlay);
+
+          // Add crater ID numbers as plain text, very small
+          // Assume coordinates are absolute pixel values
+          data.table.forEach((crater) => {
+            const idBox = document.createElement('div');
+            idBox.className = 'crater-id';
+            idBox.textContent = crater.ID;
+            idBox.dataset.cx = crater['Center X'];
+            idBox.dataset.cy = crater['Center Y'];
+            overlay.appendChild(idBox);
+          });
+
+          // Wait for image to load before positioning
+          img.onload = () => {
+            const naturalWidth = img.naturalWidth;
+            const naturalHeight = img.naturalHeight;
+            const displayedWidth = img.clientWidth;
+            const displayedHeight = img.clientHeight;
+
+            const scaleX = displayedWidth / naturalWidth;
+            const scaleY = displayedHeight / naturalHeight;
+
+            overlay.querySelectorAll('.crater-id').forEach((idBox) => {
+              const cx = parseFloat(idBox.dataset.cx);
+              const cy = parseFloat(idBox.dataset.cy);
+              const left = cx * scaleX;
+              const top = cy * scaleY;
+              idBox.style.left = `${left}px`;
+              idBox.style.top = `${top}px`;
+            });
+          };
+
+          // Create crater data table with Show More / Show Less toggle
+          const craterTable = createCraterTableWithToggle(data.table);
+          container.appendChild(craterTable);
+
+          resultImagesContainer.appendChild(container);
+
+          // 🔥 DEBUG LOGGING
+          console.log("✅ Backend returned image and gradcam.");
+
+          const heatmap = document.getElementById("gradcamFinalImage");
+          heatmap.src = data.gradcam;
+      document.getElementById("heatmapSection").style.display = "block";
+          heatmap.style.display = "block";
+
+          const hint = document.getElementById("heatmapMsg");
+          if (hint) hint.style.display = "block";
+    
+        } catch (err) {
+          alert('Error with file ' + file.name + ': ' + err.message);
+        }
+      }
+
+      loadingMsg.style.display = 'none';
+      detectBtn.style.display = 'block';
+    });
+
+    // Create crater table with Show More / Show Less functionality
+    function createCraterTableWithToggle(craters) {
+      const wrapper = document.createElement('div');
+      wrapper.style.marginTop = '20px';
+      wrapper.style.textAlign = 'center';
+
+      const table = document.createElement('table');
+      const headers = ['ID', 'Center X (px)', 'Center Y (px)', 'Width (px)', 'Height (px)', 'Diameter (px)', 'Confidence'];
+
+      // Table header row
+      const headerRow = document.createElement('tr');
+      headers.forEach((h) => {
+        const th = document.createElement('th');
+        th.textContent = h;
+        headerRow.appendChild(th);
+      });
+      table.appendChild(headerRow);
+
+      // Create all data rows
+      craters.forEach((c, i) => {
+        const row = document.createElement('tr');
+        // Add a class for toggling visibility
+        if (i >= 5) row.classList.add('hidden-row');
+        headers.forEach((h) => {
+          const td = document.createElement('td');
+          // key for accessing crater properties (remove units)
+          const key = h.split(' ')[0];
+          // Fix for key names: 'Center X' and 'Center Y' have space in name, so access directly
+          if (key === 'Center') {
+            // h is like 'Center X (px)' or 'Center Y (px)'
+            if (h.includes('X')) td.textContent = c['Center X'] ?? '';
+            else if (h.includes('Y')) td.textContent = c['Center Y'] ?? '';
+          } else {
+            td.textContent = c[key] !== undefined ? c[key] : '';
+          }
+          row.appendChild(td);
+        });
+        table.appendChild(row);
+      });
+
+      wrapper.appendChild(table);
+
+      // Toggle button
+      if (craters.length > 5) {
+        const toggleBtn = document.createElement('button');
+        toggleBtn.id = 'toggleTableBtn';
+        toggleBtn.textContent = 'Show More';
+        toggleBtn.setAttribute('aria-expanded', 'false');
+
+        toggleBtn.addEventListener('click', () => {
+          const hiddenRows = wrapper.querySelectorAll('.hidden-row');
+          const isHidden = hiddenRows[0].style.display === 'none' || !hiddenRows[0].style.display;
+
+          hiddenRows.forEach((row) => {
+            row.style.display = isHidden ? 'table-row' : 'none';
+          });
+
+          toggleBtn.textContent = isHidden ? 'Show Less' : 'Show More';
+          toggleBtn.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+        });
+
+        // Initially hide rows beyond 5
+        wrapper.querySelectorAll('.hidden-row').forEach((row) => {
+          row.style.display = 'none';
+        });
+
+        wrapper.appendChild(toggleBtn);
+      }
+
+      return wrapper;
+    }
+
+    // Background parallax effect on scroll
+    window.addEventListener('scroll', () => {
+      const scrollY = window.scrollY;
+      document.body.style.backgroundPositionY = `${-scrollY * 0.7}px`;
+    });
+
+    // Fade-in effect for sections
+    const fadeEls = document.querySelectorAll('.fade-in');
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    fadeEls.forEach((el) => observer.observe(el));
+  </script>
+
+  <div id="heatmapSection" style="display: none;" style="width: 100%; padding: 20px; background: #01111A; text-align: center; border-radius: 12px; margin-top: 40px;">
+    <h3 style="color: white; margin-bottom: 16px; text-align: center;">Grad-CAM Feature Map</h3>
+    <img id="gradcamFinalImage" src="" alt="GradCAM" style="max-width: 100%; border: 1px solid #aaa; border-radius: 10px; box-shadow: 0 0 10px rgba(0,87,255,0.3); margin: 0 auto; display: none;" />
+  </div>
+
+
+
+<section id="useCaseSection" style="padding: 40px 10px; background: #0b0f13; color: white; text-align: center;">
+  <h2 style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 30px;">🔍 Real-World Use Cases</h2>
+  <div style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px;">
+    <div style="background: #1a1f23; padding: 12px; border-radius: 30px; text-align: left;">
+      <h3 style="margin: 0; color: #ffc857;">🚀 Landing Site Safety</h3>
+      <p>Craters pose a risk of tipping for landers, and boulders can cause collisions. Our model flags hazardous area to pinpoint📍 safest landing locations.</p>
+    </div>
+    <div style="background: #1a1f23; padding: 16px; border-radius: 30px; text-align: left;">
+      <h3 style="margin: 0; color: #ffc857;">🛰️ Intelligent Rover Navigation</h3>
+      <p>Travelling on lunar surface is not a piece of cake🍰. Real Time Object detection helps rover to avoid craters, dodge boulders and find optimal paths to prevent mission failures.</p>
+    </div>
+    <div style="background: #1a1f23; padding: 16px; border-radius: 30px; text-align: left;">
+      <h3 style="margin: 0; color: #ffc857;">🔬 Scientific Research</h3>
+      <p>Crater size and frequency reveal the Moon's history. Boulder patterns hint at ancient impacts or volcanic activity🌋.</p>
+    </div>
+    <div style="background: #1a1f23; padding: 16px; border-radius: 30px; text-align: left;">
+      <h3 style="margin: 0; color: #ffc857;">🗺️ High-Resolution Lunar Maps</h3>
+      <p>Annotated maps enhance 3D terrain modeling, improve astronaut👨‍🚀 training, and refine mission planning for better surface exploration.</p>
+    </div>
+    <div style="background: #1a1f23; padding: 16px; border-radius: 30px; text-align: left;">
+      <h3 style="margin: 0; color: #ffc857;">🤖 Training AI for Planetary Robotics</h3>
+      <p>Train future AI to generalize terrain understanding across Mars🟠, asteroids☄️, and moons🌕.</p>
+    </div>
+  </div>
+</section>
+
+
+</body>
+</html>
